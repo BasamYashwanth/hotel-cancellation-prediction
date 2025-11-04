@@ -1,0 +1,6 @@
+lead_time,arrival_month,stay_duration,adults,children,deposit_type,previous_cancellations,previous_bookings,special_requests,booking_changes,market_segment,room_type,meal_plan
+45,july,3,2,0,no_deposit,0,2,1,0,online_ta,standard,bb
+120,august,5,2,1,refundable,1,5,2,1,direct,deluxe,hb
+15,september,2,1,0,non_refundable,0,0,0,0,corporate,standard,no_meal
+90,december,7,4,2,,2,3,3,2,groups,suite,fb
+30,june,4,2,1,no_deposit,,1,1,0,online_ta,family,bb
