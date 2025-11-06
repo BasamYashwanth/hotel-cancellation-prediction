@@ -264,13 +264,39 @@ export default function PredictPage() {
 
     const blob = new Blob([sampleData], { type: 'text/csv' })
     const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'sample_bookings.csv'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
+    
+    // Check if running in iframe
+    const isInIframe = window.self !== window.top
+    
+    if (isInIframe) {
+      // In iframe - open in new tab
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'sample_bookings.csv'
+      a.target = '_blank'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      
+      // Also notify parent window to open
+      window.parent.postMessage({ 
+        type: "OPEN_EXTERNAL_URL", 
+        data: { url } 
+      }, "*")
+    } else {
+      // Not in iframe - normal download
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'sample_bookings.csv'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    }
+    
+    // Cleanup after a delay
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url)
+    }, 100)
 
     toast({
       title: "Sample file downloaded",
