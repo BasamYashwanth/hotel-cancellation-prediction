@@ -327,6 +327,82 @@ export default function PredictPage() {
     }
   }
 
+  const downloadBatchResults = () => {
+    if (!batchResult) return
+
+    // Convert results to CSV format
+    const headers = ['Booking ID', 'Cancellation Probability (%)', 'Risk Level', 'Confidence (%)']
+    const rows = batchResult.predictions.map(pred => [
+      pred.booking_id,
+      pred.cancellation_probability,
+      pred.risk_level,
+      pred.confidence
+    ])
+
+    // Create CSV content
+    let csvContent = headers.join(',') + '\n'
+    rows.forEach(row => {
+      csvContent += row.join(',') + '\n'
+    })
+
+    // Add summary statistics at the bottom
+    csvContent += '\n'
+    csvContent += 'Summary Statistics\n'
+    csvContent += `Total Bookings,${batchResult.total_bookings}\n`
+    csvContent += `Average Probability,${batchResult.statistics.average_probability}%\n`
+    csvContent += `Median Probability,${batchResult.statistics.median_probability}%\n`
+    csvContent += `Min Probability,${batchResult.statistics.min_probability}%\n`
+    csvContent += `Max Probability,${batchResult.statistics.max_probability}%\n`
+    csvContent += '\n'
+    csvContent += 'Risk Distribution\n'
+    Object.entries(batchResult.statistics.risk_distribution).forEach(([level, count]) => {
+      csvContent += `${level},${count}\n`
+    })
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const filename = `cancellation_predictions_${new Date().toISOString().split('T')[0]}.csv`
+    
+    // Check if running in iframe
+    const isInIframe = window.self !== window.top
+    
+    if (isInIframe) {
+      // In iframe - open in new tab
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.target = '_blank'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      
+      // Also notify parent window
+      window.parent.postMessage({ 
+        type: "OPEN_EXTERNAL_URL", 
+        data: { url } 
+      }, "*")
+    } else {
+      // Not in iframe - normal download
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    }
+    
+    // Cleanup after a delay
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url)
+    }, 100)
+
+    toast({
+      title: "Results downloaded",
+      description: `${filename} has been saved`,
+    })
+  }
+
   return (
     <div className="container py-12">
       <div className="max-w-6xl mx-auto">
@@ -890,6 +966,14 @@ export default function PredictPage() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  <Button 
+                    onClick={downloadBatchResults}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Download Results
+                  </Button>
                 </>
               )}
 
