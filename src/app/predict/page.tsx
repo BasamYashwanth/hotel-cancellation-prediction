@@ -304,6 +304,29 @@ export default function PredictPage() {
     })
   }
 
+  const loadSampleFile = async () => {
+    try {
+      // Fetch the sample file from public folder
+      const response = await fetch('/sample_hotel_bookings.csv')
+      if (!response.ok) throw new Error('Failed to fetch sample file')
+      
+      const blob = await response.blob()
+      const file = new File([blob], 'sample_hotel_bookings.csv', { type: 'text/csv' })
+      
+      setUploadedFile(file)
+      toast({
+        title: "Sample file loaded",
+        description: `${file.name} (${(file.size / 1024).toFixed(2)} KB) - Ready to analyze`,
+      })
+    } catch (error) {
+      toast({
+        title: "Failed to load sample",
+        description: "Could not load the sample file",
+        variant: "destructive"
+      })
+    }
+  }
+
   return (
     <div className="container py-12">
       <div className="max-w-6xl mx-auto">
@@ -674,6 +697,14 @@ export default function PredictPage() {
                     >
                       <Download className="h-4 w-4" />
                       Download Sample Template
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      onClick={loadSampleFile}
+                      className="flex items-center gap-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Load Sample File
                     </Button>
                   </div>
 
